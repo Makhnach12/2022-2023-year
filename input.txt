@@ -1,0 +1,4 @@
+PROGRAM QQ
+INTEGER a,b,c
+REAL d,e
+sum = (a + b) + c
