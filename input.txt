@@ -1,4 +1,1 @@
-PROGRAM QQ
-INTEGER a,b,c
-REAL d,e
-sum = (a + b) + c
+PROGRAM  INTEGER a,b,b a = (t +34) b =a + a END

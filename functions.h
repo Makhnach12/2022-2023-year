@@ -4,7 +4,7 @@
 #include <string>
 #include "hashtable.h"
 
-void fill_table(std::string str, HashTable& matr);
+int fill_table(std::string str, HashTable& matr);
 
 #endif
 

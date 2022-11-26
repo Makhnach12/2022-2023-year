@@ -1,3 +1,17 @@
+#define PROGRAM 1
+#define INTEGER 2
+#define REAL 3
+#define RTOI 4
+#define ITOR 5
+#define END 6
+
+#define LPAREN 101    /* ( */
+#define RPAREN 102   /* ) */
+#define SEMICOLON 105 /* ; */
+#define ASSIGN 106    /* = */
+#define PLUS 107 /* + */
+#define MINUS 108 /* - */
+
 #include "functions.h"
 #include "dka.h"
 #include "hashtable.h"
@@ -9,7 +23,7 @@ std::vector<char> opers = {'+','-','=','(',')',','};
 std::vector<char> space = { ' ' };
 std::vector<std::string> keywords = { "PROGRAM","END","INTEGER","REAL","ITOR","RTOI" };
 
-void fill_table(std::string str, HashTable& matr) {
+int fill_table(std::string str, HashTable& matr) {
 	std::string word = "";
 	for (char ind : str) {
 		bool is_space = find(space.begin(), space.end(), ind) != space.end();
@@ -24,6 +38,7 @@ void fill_table(std::string str, HashTable& matr) {
 			if (find(keywords.begin(), keywords.end(), word) != keywords.end()) {
 				element a(word,"KEYWORD");
 				matr.insert(a);
+
 				word = "";
 			}
 			else if (word != "") {
@@ -49,4 +64,5 @@ void fill_table(std::string str, HashTable& matr) {
 			word = "";
 		}
 	}
+	return 0;
 }

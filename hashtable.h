@@ -15,7 +15,7 @@ public:
     int capacity() { return _capacity; }
     HashTable(int c)
     {
-        this->_capacity = c;
+        _capacity = c;
         _table = new vector<element>[c];
     }
     void insert(element a)
@@ -54,10 +54,12 @@ public:
     {
         for (int i = 0; i < _capacity; i++)
         {
-            cout << "table[" << i << "]";
-            for (auto x : _table[i])
-                cout << " --> " << x;
-            cout << "\n";
+            if (_table[i].size() != 0) {
+                cout << "table[" << i << "]";
+                for (auto x : _table[i])
+                    cout << " --> " << x;
+                cout << "\n";
+            }
         }
     }
 
@@ -66,10 +68,12 @@ public:
         ofstream out(file_name);
         for (int i = 0; i < _capacity; i++)
         {
-            out << "table[" << i << "]";
-            for (auto x : _table[i])
-                out << " --> " << x;
-            out << "\n";
+            if (_table[i].size() != 0) {
+                out << "table[" << i << "]";
+                for (auto x : _table[i])
+                    out << " --> " << x;
+                out << "\n";
+            }
         }
         out.close();
     }

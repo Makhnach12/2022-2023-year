@@ -40,4 +40,4 @@ std::string analizator::check_word(std::string word) {
 			return "not_determinated";
 	}
 	return matr[k].status();
-}
+ }
