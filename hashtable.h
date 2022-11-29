@@ -10,31 +10,35 @@ class HashTable
 {
 private:
     int _capacity;
-    vector<element>* _table;
+    vector<element> _table;
 public:
     int capacity() { return _capacity; }
     HashTable(){
         _capacity = 20000;
-        _table = new vector<element>[20000];
+        _table.resize(20000);
     }
     void insert(element a)
     {
-        bool flag = 0;
-        int index = hashFunction(a.lexem());
-        for (int i = 0; i < _table[index].size(); i++)
-            if (a.lexem() == _table[index][i].lexem())
-                flag = 1;
-        if (!flag)
-            _table[index].push_back(a);
+        int index = hashFunction(a.lexem()); // находим его индекс
+        for (int i = index; i < _capacity; i++) {
+            if (_table[i].lexem() == "") {
+                _table[i] = a;
+                return;
+            }
+            if (_table[i].lexem() == a.lexem())
+                return;
+        }
+        _table.push_back(a);
     }
+
     void deleteId(element a)
     {
         int index = hashFunction(a.lexem());
 
-        for (int i = 0; i != _table[index].size(); i++)
+        for (int i = index; i != _table.size(); i++)
         {
-            if (_table[index][i].lexem() == a.lexem()) {
-                _table[index].erase(_table[index].begin() + i);
+            if (_table[i].lexem() == a.lexem()) {
+                _table[i].lexem() = " ";
                 break;
             }
         }
@@ -53,10 +57,9 @@ public:
     {
         for (int i = 0; i < _capacity; i++)
         {
-            if (_table[i].size() != 0) {
+            if (_table[i].lexem() != "") {
                 cout << "table[" << i << "]";
-                for (auto x : _table[i])
-                    cout << " --> " << x;
+                cout << " --> " << _table[i];
                 cout << "\n";
             }
         }
@@ -67,10 +70,9 @@ public:
         ofstream out(file_name);
         for (int i = 0; i < _capacity; i++)
         {
-            if (_table[i].size() != 0) {
+            if (_table[i].lexem() != "") {
                 out << "table[" << i << "]";
-                for (auto x : _table[i])
-                    out << " --> " << x;
+                out << " --> " << _table[i];
                 out << "\n";
             }
         }

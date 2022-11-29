@@ -2,24 +2,17 @@
 #define SYNTAX_ANAL_H
 #include "hashtable.h"
 #include "syntax.h"
+#include "checker.h"
 #include "dka.h"
 #include <string>
 #include <iostream>
 #include <fstream>
 #include "tree.h"
-
-#define TYPE 200
-#define EXPR 201
-#define SEXPR 202
-#define DESCRIPTION 203
-#define DESCR 204
-#define OPERS 205
-#define OP 206
-#define BEGIN 207
-#define FUNCTION 208
-#define VAR_LIST 209
+#include "comp_element.h"
 
 class syntax_anal {
+public:
+    HashTable table() { return gg_2; }
 private:
     ifstream stream;
     HashTable gg_2;
@@ -29,11 +22,13 @@ private:
     int flag_lparen;
     int flag_rparen;
     node* _root;
+    element _lexem;
+    element pref_lexem;
     //рекурсивная функция разбора строки
     int expression(node* _son) {
         int statement_result;
         //берем следующую лексему
-        int lexem = get_lexem(stream, gg, gg_2);
+        int lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         //чтоб не начать разбирать новую строку раньше времени
@@ -60,9 +55,11 @@ private:
             //избежание случаев когда перед скобкой стоят числа или перменные
             if (pref == INTDIG || pref == REAL || pref == ID)
                 return EXPECTED_SEPARATOR;
-            _son = _son->add(_son, EXPR);
-            _son = _son->add(_son, SEXPR);
-            _son->add(_son, LPAREN);
+            if (pref != RTOI && pref != ITOR) {
+                _son = _son->add(_son, EXPR);
+                _son = _son->add(_son, SEXPR);
+            }
+            _son->add(_son, _lexem);
             pref = 0;
             flag_lparen += 1;
             //идем разбирать что творится внутри скобок
@@ -78,14 +75,14 @@ private:
 
             flag_lparen -= 1;
             flag_rparen -= 1;
-            _son->add(_son, RPAREN);
+            _son->add(_son, _lexem);
             //считываем сразу новый символ так как тогда не до разберем строку
-            lexem = get_lexem(stream, gg, gg_2);
+            lexem = get_lexem(stream, gg, gg_2, _lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
             if (lexem == PLUS || lexem == MINUS) {
                 pref = lexem;
-                _son->add(_son, lexem);
+                _son->add(_son, _lexem);
                 return expression(_son); 
             }
             else if (lexem == RPAREN) {
@@ -111,8 +108,11 @@ private:
             pref = lexem;
             _son = _son->add(_son, EXPR);
             _son = _son->add(_son, SEXPR);
-            _son = _son->add(_son, lexem);
-            return expression(_son->parent->parent);
+            _son = _son->add(_son, _lexem);
+            if (lexem != RTOI and lexem != ITOR)
+                return expression(_son->parent->parent);
+            else
+                return expression(_son->parent);
         }
         else if (pref == ID || pref == REALDIG || pref == INTDIG) {
             if (lexem == REALDIG || lexem == INTDIG || lexem == RTOI || lexem == ITOR)
@@ -121,7 +121,7 @@ private:
                 return EXPECTED_ASSIGN;
             pref = lexem;
             if (lexem == PLUS || lexem == MINUS) {
-                _son->add(_son, lexem);
+                _son->add(_son, _lexem);
                 return expression(_son);
             }
             else
@@ -131,11 +131,17 @@ private:
             if (lexem == PLUS || lexem == MINUS)
                 return EXPECTED_IDENTIFIER;
             pref = lexem;
-            if (lexem == INTDIG || lexem == REALDIG || lexem == ID || lexem == RTOI || lexem == ITOR) {
+            if (lexem == INTDIG || lexem == REALDIG || lexem == ID) {
                 _son = _son -> add(_son, EXPR);
                 _son = _son->add(_son, SEXPR);
-                _son = _son->add(_son, lexem);
+                _son = _son->add(_son, _lexem);
                 return expression(_son->parent->parent);
+            }
+            else if (lexem == RTOI || lexem == ITOR) {
+                _son = _son->add(_son, EXPR);
+                _son = _son->add(_son, SEXPR);
+                _son = _son->add(_son, _lexem);
+                return expression(_son->parent);
             }
             else
                 return UNRECOGNIZED_STATEMENT;
@@ -144,7 +150,7 @@ private:
     }
 
     int description(node* _son, node* _description) {
-        int lexem = get_lexem(stream, gg, gg_2);
+        int lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem == ID) {
@@ -152,7 +158,7 @@ private:
                 _son = _son->add(_son, VAR_LIST);
                 _pref = lexem;
                 _son = _son->add(_son, ID);
-                _son = _son->add(_son, lexem);
+                _son = _son->add(_son, _lexem);
                 return description(_son->parent, _description);
             }
             else if (_pref == ID) {
@@ -165,7 +171,7 @@ private:
             }
             else if (_pref == ID) {
                 _pref = lexem;
-                _son->add(_son, APPERAND);
+                _son->add(_son, _lexem);
                 return description(_son, _description);
             }
         }
@@ -179,7 +185,7 @@ private:
             _description = _son;
             _son = _son->add(_son, DESCR);
             _son = _son->add(_son, TYPE);
-            _son = _son->add(_son, lexem);
+            _son = _son->add(_son, _lexem);
             return description(_son->parent->parent, _description);
         }
     }
@@ -198,15 +204,15 @@ public:
         int statement_result;
         int lexem;
         node* _son = _root->add(_root, BEGIN);
-        lexem = get_lexem(stream, gg, gg_2);
+        lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
 
         if (lexem != PROGRAM)
             return EXPECTED_PROGRAM;
-        _son = _son->add(_son, PROGRAM);
+        _son = _son->add(_son, _lexem);
 
-        lexem = get_lexem(stream, gg, gg_2);
+        lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem != INTEGER && lexem != REAL) {
@@ -217,12 +223,13 @@ public:
             _son = _root->add(_root, DESCRIPTION);
             _son = _son->add(_son, DESCR);
             _son = _son->add(_son, TYPE);
-            _son = _son->add(_son, INTEGER);
+            _son = _son->add(_son, _lexem);
             statement_result = description(_son->parent->parent, _root->arr[1]);
         }
 
         if (statement_result == EXPECTED_SEPARATOR) {
-            lexem = get_lexem(stream, gg, gg_2);
+            pref_lexem = _lexem;
+            lexem = get_lexem(stream, gg, gg_2, _lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
             if (lexem != ASSIGN)
@@ -230,8 +237,8 @@ public:
             _son = _root->add(_root, OPERS);
             _son = _son->add(_son, OP);
             _son = _son->add(_son, ID);
-            _son = _son->add(_son, _pref);
-            _son = _son->add(_son->parent->parent, lexem);
+            _son = _son->add(_son, pref_lexem);
+            _son = _son->add(_son->parent->parent, _lexem);
         }
         else
             return statement_result;
@@ -240,7 +247,8 @@ public:
         node* _opers = _root->arr[2];
         while (statement_result != OK) {
             if (statement_result == EXPECTED_ASSIGN) {
-                lexem = get_lexem(stream, gg, gg_2);
+                pref_lexem = _lexem;
+                lexem = get_lexem(stream, gg, gg_2, _lexem);
                 if (lexem == LEX_ERR)
                     return LEX_ERR;
                 if (lexem == ASSIGN) { 
@@ -249,8 +257,8 @@ public:
                     _opers = _son;
                     _son = _son->add(_son, OP);
                     _son = _son->add(_son, ID);
-                    _son = _son->add(_son, _pref);
-                    _son = _son->add(_son->parent->parent, lexem);
+                    _son = _son->add(_son, pref_lexem);
+                    _son = _son->add(_son->parent->parent, _lexem);
                     statement_result = expression(_son->parent);
                 }
                 else
