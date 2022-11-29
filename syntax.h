@@ -1,6 +1,6 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
-#define PROGRAM 1
+#define PROGRAM 7
 #define INTEGER 2
 #define REAL 3
 #define RTOI 4
@@ -44,17 +44,17 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2){
     char ch;
     fin.get(ch);
     std::string buffer;
+    if ((int)ch == -52)
+        return LEX_ERR;
     /* пропускаем все пробелы, табул€ции и символы новой строки */
     while (ch == ' ' || ch == '\n')
        fin.get(ch);
-
     if (ch == '(') {
         string word = "(";
         element a(word, "LPAREN");
         gg_2.insert(a);
         return LPAREN;
     }
-
     if (ch == ')') {
         string word = ")";
         element a(word, "RPAREN");

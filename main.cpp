@@ -39,9 +39,10 @@ string trans(int num) {
 }
 
 int main() {
-	HashTable gg_2(20000);
-	ifstream fin("input.txt");
-	cout<<trans(program(fin, gg_2)) << "\n";
-	gg_2.displayHash();
+	syntax_anal govno("input.txt");
+	cout<< trans(govno.program()) << "\n";
+	node* a = govno.root();
+	a->_print(a,0);
+	a->destroy(a);
 	return 0;
 }

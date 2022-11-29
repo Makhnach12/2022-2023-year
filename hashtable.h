@@ -13,10 +13,9 @@ private:
     vector<element>* _table;
 public:
     int capacity() { return _capacity; }
-    HashTable(int c)
-    {
-        _capacity = c;
-        _table = new vector<element>[c];
+    HashTable(){
+        _capacity = 20000;
+        _table = new vector<element>[20000];
     }
     void insert(element a)
     {
