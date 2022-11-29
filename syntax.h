@@ -119,8 +119,11 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
             gg_2.insert(a);
             return ID;
         }
-        else
+        else {
+            element a(buffer, "LEX_ERR");
+            el = a;
             return LEX_ERR;
+        }
     }
 
     /* сложный случай 4: число */
@@ -143,6 +146,8 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
             gg_2.insert(a);
             return INTDIG;
         }
+        element a(buffer, "LEX_ERR");
+        el = a;
     }
 
     return LEX_ERR;

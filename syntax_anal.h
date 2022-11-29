@@ -13,6 +13,8 @@
 class syntax_anal {
 public:
     HashTable table() { return gg_2; }
+    string lexem() { return _lexem.lexem(); }
+    string lexem2() { return pref_lexem.lexem(); }
 private:
     ifstream stream;
     HashTable gg_2;
@@ -28,14 +30,16 @@ private:
     int expression(node* _son) {
         int statement_result;
         //берем следующую лексему
+        pref_lexem = _lexem;
         int lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         //чтоб не начать разбирать новую строку раньше времени
         if (lexem == END) {
             //не может кончаться на плюс или минус
-            if (pref == PLUS || pref == MINUS)
+            if (pref == PLUS || pref == MINUS || pref == ITOR || pref == RTOI)
                 return UNRECOGNIZED_STATEMENT;
+            pref = lexem;
             return OK;
         }
         if (lexem == RPAREN) {
@@ -77,6 +81,7 @@ private:
             flag_rparen -= 1;
             _son->add(_son, _lexem);
             //считываем сразу новый символ так как тогда не до разберем строку
+            pref_lexem = _lexem;
             lexem = get_lexem(stream, gg, gg_2, _lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
@@ -106,13 +111,19 @@ private:
             if (lexem == PLUS || lexem == MINUS)
                 return EXPECTED_IDENTIFIER;
             pref = lexem;
-            _son = _son->add(_son, EXPR);
-            _son = _son->add(_son, SEXPR);
-            _son = _son->add(_son, _lexem);
-            if (lexem != RTOI and lexem != ITOR)
-                return expression(_son->parent->parent);
-            else
+            if (lexem != RTOI and lexem != ITOR) {
+                _son = _son->add(_son, EXPR);
+                _son = _son->add(_son, SEXPR);
+                _son = _son->add(_son, lexem);
+                _son = _son->add(_son, _lexem);
+                return expression(_son->parent->parent->parent);
+            }
+            else {
+                _son = _son->add(_son, EXPR);
+                _son = _son->add(_son, SEXPR);
+                _son = _son->add(_son, _lexem);
                 return expression(_son->parent);
+            }
         }
         else if (pref == ID || pref == REALDIG || pref == INTDIG) {
             if (lexem == REALDIG || lexem == INTDIG || lexem == RTOI || lexem == ITOR)
@@ -134,8 +145,9 @@ private:
             if (lexem == INTDIG || lexem == REALDIG || lexem == ID) {
                 _son = _son -> add(_son, EXPR);
                 _son = _son->add(_son, SEXPR);
+                _son = _son->add(_son, lexem);
                 _son = _son->add(_son, _lexem);
-                return expression(_son->parent->parent);
+                return expression(_son->parent->parent->parent);
             }
             else if (lexem == RTOI || lexem == ITOR) {
                 _son = _son->add(_son, EXPR);
@@ -150,6 +162,7 @@ private:
     }
 
     int description(node* _son, node* _description) {
+        pref_lexem = _lexem;
         int lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
@@ -204,14 +217,23 @@ public:
         int statement_result;
         int lexem;
         node* _son = _root->add(_root, BEGIN);
+        pref_lexem = _lexem;
         lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
 
         if (lexem != PROGRAM)
             return EXPECTED_PROGRAM;
-        _son = _son->add(_son, _lexem);
-
+        _son->add(_son, _lexem);
+        pref_lexem = _lexem;
+        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        if (lexem == LEX_ERR)
+            return LEX_ERR;
+        if (lexem != ID)
+            return EXPECTED_IDENTIFIER;
+        _son = _root->add(_son, lexem);
+        _son = _root->add(_son, _lexem);
+        pref_lexem = _lexem;
         lexem = get_lexem(stream, gg, gg_2, _lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
@@ -268,6 +290,17 @@ public:
                 return statement_result;
         }
         _son = _root->add(_root, END);
+        if (pref != END)
+            return EXPECTED_END;
+        _son->add(_son, _lexem);
+        pref_lexem = _lexem;
+        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        if (lexem == LEX_ERR)
+            return LEX_ERR;
+        if (lexem != ID)
+            return EXPECTED_IDENTIFIER;
+        _son = _root->add(_son, lexem);
+        _son = _root->add(_son, _lexem);
         return OK;
     }
 };

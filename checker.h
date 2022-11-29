@@ -46,6 +46,7 @@
 #define BEGIN 207
 #define FUNCTION 208
 #define VAR_LIST 209
+#define EXPECTED_END 210
 
 #define OK 1
 std::string trans(int num) {
@@ -118,6 +119,8 @@ std::string trans(int num) {
 		return "REAL NUM";
 	case END:
 		return "END";
+	case EXPECTED_END:
+		return "EXPECTED_END";
 	default:
 		return "OK";
 	}

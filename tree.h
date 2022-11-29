@@ -43,7 +43,7 @@ public:
 		return govno;
 	}
 
-	void _print(node* pos, int level) {
+	inline void _print(node* pos, int level) {
 		if (pos == 0) return;
 		for (int i = 0; i < level; i++)
 			cout << ' ';
@@ -53,6 +53,19 @@ public:
 			cout << pos->el << "\n";
 		for (int i = 0; i < pos->_size; i++) {
 			_print(pos->arr[i], level + 1);
+		}
+	}
+
+	inline void _print(node* pos, int level, ofstream& fout) {
+		if (pos == 0) return;
+		for (int i = 0; i < level; i++)
+			fout << ' ';
+		if (pos->a != -1)
+			fout << trans(pos->a) << '\n';
+		else
+			fout << pos->el << "\n";
+		for (int i = 0; i < pos->_size; i++) {
+			_print(pos->arr[i], level + 1, fout);
 		}
 	}
 
