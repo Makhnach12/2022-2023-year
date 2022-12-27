@@ -35,6 +35,7 @@
 #define EXPECTED_PROGRAM 119
 #define SUP_RPAREN 120
 #define SUP_ASSIGN 121
+#define NOT_DETERMINATED_ID 122
 
 #define TYPE 200
 #define EXPR 201
@@ -121,6 +122,8 @@ std::string trans(int num) {
 		return "END";
 	case EXPECTED_END:
 		return "EXPECTED_END";
+	case NOT_DETERMINATED_ID:
+		return "NOT_DETERMINATED_ID";
 	default:
 		return "OK";
 	}

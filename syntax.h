@@ -6,7 +6,7 @@
 #include "dka.h"
 #include "checker.h"
 
-int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
+int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el, int type_int){
     char ch;
     fin.get(ch);
     std::string buffer;
@@ -17,48 +17,42 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
        fin.get(ch);
     if (ch == '(') {
         string word = "(";
-        element a(word, "LPAREN");
+        element a(word, "LPAREN", LPAREN);
         el = a;
-        gg_2.insert(a);
         return LPAREN;
     }
     if (ch == ')') {
         string word = ")";
-        element a(word, "RPAREN");
+        element a(word, "RPAREN", RPAREN);
         el = a;
-        gg_2.insert(a);
         return RPAREN;
     }
 
     if (ch == '=') {
         string word = "=";
-        element a(word, "ASSIGN");
+        element a(word, "ASSIGN", ASSIGN);
         el = a;
-        gg_2.insert(a);
         return ASSIGN;
     }
 
     if (ch == ',') {
         string word = ",";
-        element a(word, "APPERAND");
+        element a(word, "APPERAND", APPERAND);
         el = a;
-        gg_2.insert(a);
         return APPERAND;
     }
 
     if (ch == '+') {
         string word = "+";
-        element a(word, "PLUS");
+        element a(word, "PLUS", PLUS);
         el = a;
-        gg_2.insert(a);
         return PLUS;
     }
 
     if (ch == '-') {
         string word = "-";
-        element a(word, "MINUS");
+        element a(word, "MINUS", MINUS);
         el = a;
-        gg_2.insert(a);
         return MINUS;
     }
 
@@ -72,51 +66,45 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
         fin.putback(ch);
 
         if ("PROGRAM" == buffer) {
-            element a(buffer, "KEYWORD");
-            gg_2.insert(a);
+            element a(buffer, "KEYWORD", PROGRAM);
             el = a;
             return PROGRAM;
         }
 
         if ("INTEGER" == buffer) {
-            element a(buffer, "KEYWORD");
-            gg_2.insert(a);
+            element a(buffer, "KEYWORD", INTEGER);
             el = a;
             return INTEGER;
         }
 
         if ("REAL" == buffer) {
-            element a(buffer, "KEYWORD");
-            gg_2.insert(a);
+            element a(buffer, "KEYWORD", REAL);
             el = a;
             return REAL;
         }
 
         if ("RTOI" == buffer) {
-            element a(buffer, "KEYWORD");
-            gg_2.insert(a);
+            element a(buffer, "KEYWORD", RTOI);
             el = a;
             return RTOI;
         }
 
         if ("ITOR" == buffer) {
-            element a(buffer, "KEYWORD");
+            element a(buffer, "KEYWORD", ITOR);
             gg_2.insert(a);
             el = a;
             return ITOR;
         }
 
         if ("END" == buffer) {
-            element a(buffer, "KEYWORD");
-            gg_2.insert(a);
+            element a(buffer, "KEYWORD", END);
             el = a;
             return END;
         }
 
         if (gg.check_word(buffer) == "id") {
-            element a(buffer, "id");
+            element a(buffer, "id", type_int);
             el = a;
-            gg_2.insert(a);
             return ID;
         }
         else {
@@ -135,18 +123,16 @@ int get_lexem(ifstream& fin, analizator& gg, HashTable& gg_2, element& el){
         fin.putback(ch);
         string stat = gg.check_word(buffer);
         if (stat == "realDig") {
-            element a(buffer, "REAL NUM");
+            element a(buffer, "REAL NUM", REAL);
             el = a;
-            gg_2.insert(a);
             return REALDIG;
         }
         else if (stat == "intDig") {
-            element a(buffer, "INT NUM");
+            element a(buffer, "INT NUM", INTEGER);
             el = a;
-            gg_2.insert(a);
             return INTDIG;
         }
-        element a(buffer, "LEX_ERR");
+        element a(buffer, "LEX_ERR", LEX_ERR);
         el = a;
     }
 

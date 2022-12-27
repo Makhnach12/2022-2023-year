@@ -31,6 +31,25 @@ public:
         _table.push_back(a);
     }
 
+    bool find(element a) {
+        int index = hashFunction(a.lexem()); // находим его индекс
+        for (int i = index; i < _capacity; i++) {
+            if (_table[i].lexem() == a.lexem())
+                return 1;
+        }
+        return 0;
+    }
+
+    void get_int_type(element& a) {
+        int index = hashFunction(a.lexem()); // находим его индекс
+        for (int i = index; i < _capacity; i++) {
+            if (_table[i].lexem() == a.lexem()) {
+                a._int_lexem = _table[i]._int_lexem;
+                return;
+            }
+        }
+    }
+
     void deleteId(element a)
     {
         int index = hashFunction(a.lexem());

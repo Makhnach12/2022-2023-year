@@ -23,6 +23,7 @@ private:
     int _pref;
     int flag_lparen;
     int flag_rparen;
+    int type_now;
     node* _root;
     element _lexem;
     element pref_lexem;
@@ -31,11 +32,12 @@ private:
         int statement_result;
         //берем следующую лексему
         pref_lexem = _lexem;
-        int lexem = get_lexem(stream, gg, gg_2, _lexem);
+        int lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         //чтоб не начать разбирать новую строку раньше времени
         if (lexem == END) {
+            gg_2.insert(_lexem);
             //не может кончаться на плюс или минус
             if (pref == PLUS || pref == MINUS || pref == ITOR || pref == RTOI)
                 return UNRECOGNIZED_STATEMENT;
@@ -43,6 +45,7 @@ private:
             return OK;
         }
         if (lexem == RPAREN) {
+            gg_2.insert(_lexem);
             //избежание случаев когда перед скобкой стоит (-+
             if (pref == 0 || pref == MINUS || pref == PLUS)
                 return EXPECTED_IDENTIFIER;
@@ -56,6 +59,7 @@ private:
                 return EXPECTED_LPAREN;
         }
         if (lexem == LPAREN) {
+            gg_2.insert(_lexem);
             //избежание случаев когда перед скобкой стоят числа или перменные
             if (pref == INTDIG || pref == REAL || pref == ID)
                 return EXPECTED_SEPARATOR;
@@ -82,7 +86,11 @@ private:
             _son->add(_son, _lexem);
             //считываем сразу новый символ так как тогда не доразберем строку
             pref_lexem = _lexem;
-            lexem = get_lexem(stream, gg, gg_2, _lexem);
+            lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+            if (lexem == ID and !gg_2.find(_lexem))
+                return NOT_DETERMINATED_ID;
+            else if (lexem == ID and gg_2.find(_lexem))
+                gg_2.get_int_type(_lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
             if (lexem == PLUS || lexem == MINUS) {
@@ -110,6 +118,11 @@ private:
         else if (pref == 0) {
             if (lexem == PLUS || lexem == MINUS)
                 return EXPECTED_IDENTIFIER;
+            if (lexem == ID and !gg_2.find(_lexem)) {
+                return NOT_DETERMINATED_ID;
+            }
+            else if (lexem == ID and gg_2.find(_lexem))
+                gg_2.get_int_type(_lexem);
             pref = lexem;
             if (lexem != RTOI and lexem != ITOR) {
                 _son = _son->add(_son, EXPR);
@@ -143,6 +156,11 @@ private:
                 return EXPECTED_IDENTIFIER;
             pref = lexem;
             if (lexem == INTDIG || lexem == REALDIG || lexem == ID) {
+                if (lexem == ID and !gg_2.find(_lexem)) {
+                    return NOT_DETERMINATED_ID;
+                }
+                else if (lexem == ID and gg_2.find(_lexem))
+                    gg_2.get_int_type(_lexem);
                 _son = _son -> add(_son, EXPR);
                 _son = _son->add(_son, SEXPR);
                 _son = _son->add(_son, lexem);
@@ -163,7 +181,7 @@ private:
 
     int description(node* _son, node* _description) {
         pref_lexem = _lexem;
-        int lexem = get_lexem(stream, gg, gg_2, _lexem);
+        int lexem = get_lexem(stream, gg, gg_2, _lexem, type_now);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem == ID) {
@@ -172,10 +190,16 @@ private:
                 _pref = lexem;
                 _son = _son->add(_son, ID);
                 _son = _son->add(_son, _lexem);
+                gg_2.insert(_lexem);
                 return description(_son->parent, _description);
             }
             else if (_pref == ID) {
-                return EXPECTED_SEPARATOR;
+                if (gg_2.find(_lexem)) {
+                    gg_2.get_int_type(_lexem);
+                    return EXPECTED_SEPARATOR;
+                }
+                else
+                    return NOT_DETERMINATED_ID;
             }
         }
         if (lexem == APPERAND) {
@@ -185,6 +209,7 @@ private:
             else if (_pref == ID) {
                 _pref = lexem;
                 _son->add(_son, _lexem);
+                gg_2.insert(_lexem);
                 return description(_son, _description);
             }
         }
@@ -193,12 +218,14 @@ private:
             return UNRECOGNIZED_STATEMENT;
         }
         if (lexem == REAL || lexem == INTEGER) {
+            type_now = lexem;
             _pref = lexem;
             _son = _description->add(_description, DESCRIPTION);
             _description = _son;
             _son = _son->add(_son, DESCR);
             _son = _son->add(_son, TYPE);
             _son = _son->add(_son, _lexem);
+            gg_2.insert(_lexem);
             return description(_son->parent->parent, _description);
         }
     }
@@ -218,7 +245,8 @@ public:
         int lexem;
         node* _son = _root->add(_root, BEGIN);
         pref_lexem = _lexem;
-        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+        gg_2.insert(_lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
 
@@ -226,7 +254,8 @@ public:
             return EXPECTED_PROGRAM;
         _son->add(_son, _lexem);
         pref_lexem = _lexem;
-        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+        gg_2.insert(_lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem != ID)
@@ -234,13 +263,15 @@ public:
         _son = _root->add(_son, lexem);
         _son = _root->add(_son, _lexem);
         pref_lexem = _lexem;
-        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+        gg_2.insert(_lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem != INTEGER && lexem != REAL) {
             return EXPECTED_DESCRIPTION;
         }
         else {
+            type_now = lexem;
             _pref = lexem;
             _son = _root->add(_root, DESCRIPTION);
             _son = _son->add(_son, DESCR);
@@ -251,7 +282,8 @@ public:
 
         if (statement_result == EXPECTED_SEPARATOR) {
             pref_lexem = _lexem;
-            lexem = get_lexem(stream, gg, gg_2, _lexem);
+            lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+            gg_2.insert(_lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
             if (lexem != ASSIGN)
@@ -270,7 +302,8 @@ public:
         while (statement_result != OK) {
             if (statement_result == EXPECTED_ASSIGN) {
                 pref_lexem = _lexem;
-                lexem = get_lexem(stream, gg, gg_2, _lexem);
+                lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+                gg_2.insert(_lexem);
                 if (lexem == LEX_ERR)
                     return LEX_ERR;
                 if (lexem == ASSIGN) { 
@@ -294,7 +327,8 @@ public:
             return EXPECTED_END;
         _son->add(_son, _lexem);
         pref_lexem = _lexem;
-        lexem = get_lexem(stream, gg, gg_2, _lexem);
+        lexem = get_lexem(stream, gg, gg_2, _lexem, 0);
+        gg_2.insert(_lexem);
         if (lexem == LEX_ERR)
             return LEX_ERR;
         if (lexem != ID)

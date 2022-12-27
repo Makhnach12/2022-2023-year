@@ -13,8 +13,8 @@
 vector<vector<std::string>> descrs;
 void poliz_begin(node* pos, vector<std::string>& _line, int& num_of_args);
 void poliz_descr(node* pos, vector<std::string>& _line, int& num_of_args);
-void poliz_expr(node* pos, vector<std::string>& _line);
-void poliz_op(node* pos, vector<std::string>& _line, std::string& id);
+void poliz_expr(node* pos, vector<std::string>& _line, int& num_2, int& num_3);
+int poliz_op(node* pos, vector<std::string>& _line, std::string& id, int& gg);
 void poliz_end(node* pos, vector<std::string>& _line, int& num_of_args);
 
 void poliz_program(node* pos, ofstream& fout) {
@@ -52,9 +52,12 @@ void poliz_program(node* pos, ofstream& fout) {
 	_line.clear();
 	descr_node = pos->arr[2];
 	std::string id;
+	int gg = 0;
 	while (1) {
 		if (descr_node->arr.size() == 2) {
-			poliz_op(descr_node->arr[0], _line, id);
+			poliz_op(descr_node->arr[0], _line, id, gg);
+			if (gg == 1)
+				cout << "gg";
 			_line.push_back(id);
 			_line.push_back("=");
 			for (int i = 0; i < _line.size(); i++) {
@@ -65,7 +68,9 @@ void poliz_program(node* pos, ofstream& fout) {
 			fout << "\n";
 		}
 		else {
-			poliz_op(descr_node->arr[0], _line, id);
+			poliz_op(descr_node->arr[0], _line, id, gg);
+			if (gg == 1)
+				cout << "gg";
 			_line.push_back(id);
 			_line.push_back("=");
 			for (int i = 0; i < _line.size(); i++) {
@@ -111,11 +116,23 @@ void poliz_descr(node* pos, vector<std::string>& _line, int& num_of_args) {
 	}
 }
 
-void poliz_expr(node* pos, vector<std::string>& _line) {
+void poliz_expr(node* pos, vector<std::string>& _line, int& num_2, int& num_3) {
 	if (pos == 0) return;
 	if (pos->a == -1 and pos->el.lexem() != "(" and pos->el.lexem() != ")") {
 		auto it = _line.begin();
 		_line.push_back(pos->el.lexem());
+		if (pos->el._int_lexem == 2)
+			num_2 += 1;
+		else if (pos->el._int_lexem == 3)
+			num_3 += 1;
+		else if (pos->el.lexem() == "RTOI") {
+			num_3 -= 1;
+			num_2 += 1;
+		}
+		else {
+			num_3 += 1;
+			num_2 -= 1;
+		}
 	}
 	for (int i = pos->_size - 1; i > -1; i--) {
 		if (pos->arr[i]->el.lexem() == "+" or pos->arr[i]->el.lexem() == "-") {
@@ -123,26 +140,38 @@ void poliz_expr(node* pos, vector<std::string>& _line) {
 			int line_size = _line.size();
 			while (line_size - _line.size() == 0) {
 				i -= 1;
-				poliz_expr(pos->arr[i], _line);
+				poliz_expr(pos->arr[i], _line, num_2, num_3);
+			}
+			if (num_2 == 2) {
+				num_2 = 1;
+			}
+			else if (num_3 == 2) {
+				num_3 = 1;
 			}
 			_line.push_back(_lexem);
 		}
 		else
-			poliz_expr(pos->arr[i], _line);
+			poliz_expr(pos->arr[i], _line, num_2, num_3);
 	}
 }
 
-void poliz_op(node* pos, vector<std::string>& _line, std::string& id) {
-	if (pos == 0) return;
+int poliz_op(node* pos, vector<std::string>& _line, std::string& id, int& gg) {
+	int num_2 = 0;
+	int num_3 = 0;
+	if (pos == 0) return OK;
 	if (pos->a == 201) {
-		poliz_expr(pos, _line);
-		return;
+		poliz_expr(pos, _line, num_2, num_3);
+		if (num_2 != 0 and num_3 != 0) {
+			gg = 1;
+			return NOT_DETERMINATED_ID;
+		}
+		return OK;
 	}
 	if (pos->a == -1 and pos->el.lexem() != "=") {
 		id = pos->el.lexem();
 	}
 	for (int i = 0; i < pos->_size; i++) {
-		poliz_op(pos->arr[i], _line, id);
+		poliz_op(pos->arr[i], _line, id, gg);
 	}
 }
 
