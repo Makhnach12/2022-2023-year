@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "poliz.h"
 
 int main() {
 	syntax_anal prog("input.txt");
@@ -25,6 +26,8 @@ int main() {
 	node* a = prog.root();
 	ofstream text("output2.txt");
 	a->_print(a,0,text);
+	ofstream text2("output3.txt");
+	poliz_program(prog.root(), text2);
 	a->destroy(a);
 	prog.table().displayHash("output.txt");
 	return 0;

@@ -80,15 +80,15 @@ private:
             flag_lparen -= 1;
             flag_rparen -= 1;
             _son->add(_son, _lexem);
-            //считываем сразу новый символ так как тогда не до разберем строку
+            //считываем сразу новый символ так как тогда не доразберем строку
             pref_lexem = _lexem;
             lexem = get_lexem(stream, gg, gg_2, _lexem);
             if (lexem == LEX_ERR)
                 return LEX_ERR;
             if (lexem == PLUS || lexem == MINUS) {
                 pref = lexem;
-                _son->add(_son, _lexem);
-                return expression(_son); 
+                _son->add(_son->parent, _lexem);
+                return expression(_son->parent); 
             }
             else if (lexem == RPAREN) {
                 flag_rparen += 1;
