@@ -48,6 +48,7 @@
 #define FUNCTION 208
 #define VAR_LIST 209
 #define EXPECTED_END 210
+#define IMPLICT_COERCION 211
 
 #define OK 1
 std::string trans(int num) {
@@ -124,6 +125,8 @@ std::string trans(int num) {
 		return "EXPECTED_END";
 	case NOT_DETERMINATED_ID:
 		return "NOT_DETERMINATED_ID";
+	case IMPLICT_COERCION:
+		return "IMPLICT COERCION";
 	default:
 		return "OK";
 	}

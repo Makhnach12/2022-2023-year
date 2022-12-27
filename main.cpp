@@ -27,7 +27,13 @@ int main() {
 	ofstream text("output2.txt");
 	a->_print(a,0,text);
 	ofstream text2("output3.txt");
-	poliz_program(prog.root(), text2);
+	vector<vector<std::string>> matr;
+	int cr = poliz_program(prog.root(), matr);
+	if (cr == 1) {
+		cout_matrix(matr, text2);
+	}
+	else
+		cout << trans(cr);
 	a->destroy(a);
 	prog.table().displayHash("output.txt");
 	return 0;
